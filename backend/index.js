@@ -8,7 +8,6 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const app = express();
 
-
 function authenticateTokenMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -19,7 +18,6 @@ function authenticateTokenMiddleware(req, res, next) {
   next();
 }
 
-
 app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -27,7 +25,6 @@ app.use(cors({
   methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
   optionsSuccessStatus: 200
 }));
-
 
 app.use('/uploads', express.static('uploads'));
 
@@ -46,6 +43,15 @@ const upload = multer({
   storage: storage, limits: { fileSize: 10000000 } // 10MB limit
 });
 
+app.get('/verify', (req, res) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (token == null) return res.send({message: "NoToken"});
+
+  const user = jwt.verify(token, process.env.JWT_SECRET);
+  req.userId = user.userId;
+  res.status(200).send({message: "Valid"})
+})
 
 app.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -61,7 +67,7 @@ app.post("/register", async (req, res) => {
     res.json({ user });
   }
   catch (err) {
-    res.status(400).json({ message: "User already exists" });
+    res.status(400).json({ message: "Email is not Available" });
   }
 });
 
@@ -70,11 +76,11 @@ app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Email or Password Invalid" });
     }
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Email or Password Invalid" });
     }
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
     res.json({ token });
@@ -110,13 +116,27 @@ app.post("/books", authenticateTokenMiddleware, upload.single('image'), async (r
 
 });
 
-
 // get all books
 app.get("/books", async (req, res) => {
   const books = await prisma.book.findMany();
   res.json({ books });
 }
 );
+
+// get book by id 
+app.get("/books/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const book = await prisma.book.findUnique({
+      where: { id: Number(id) },
+    });
+    res.json({ book });
+  }
+  catch (e) {
+    console.log(e);
+    res.status(400).json({ message: "Something went wrong" });
+  }
+});
 
 // edit a book
 app.put("/books/:id", authenticateTokenMiddleware, async (req, res) => {
@@ -143,7 +163,6 @@ app.put("/books/:id", authenticateTokenMiddleware, async (req, res) => {
 
 });
 
-
 // delete a book
 app.delete("/books/:id", authenticateTokenMiddleware, async (req, res) => {
   try {
@@ -158,22 +177,6 @@ app.delete("/books/:id", authenticateTokenMiddleware, async (req, res) => {
     res.status(400).json({ message: "Something went wrong" });
   }
 });
-
-// get book by id 
-app.get("/books/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const book = await prisma.book.findUnique({
-      where: { id: Number(id) },
-    });
-    res.json({ book });
-  }
-  catch (e) {
-    console.log(e);
-    res.status(400).json({ message: "Something went wrong" });
-  }
-});
-
 
 // Start the server
 app.listen(8000, () => {
