@@ -8,13 +8,21 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const app = express();
 
-function authenticateTokenMiddleware(req, res, next) {
+async function authenticateTokenMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
+  if (token === null) return res.status(401).send({message: "NoToken"});
 
-  const user = jwt.verify(token, process.env.JWT_SECRET);
-  req.userId = user.userId;
+  await jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
+        return res.status(401).send({message: "TokenError"});
+      } else {
+        return res.status(500).send({message: "InternalServerError"});
+      }
+    }
+    req.userId = decoded.userId
+  });
   next();
 }
 
@@ -43,14 +51,22 @@ const upload = multer({
   storage: storage, limits: { fileSize: 10000000 } // 10MB limit
 });
 
-app.get('/verify', (req, res) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.send({message: "NoToken"});
+app.get('/verify', async (req, res) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (token === null) return res.status(401).send({message: "NoToken"});
 
-  const user = jwt.verify(token, process.env.JWT_SECRET);
-  req.userId = user.userId;
-  res.status(200).send({message: "Valid"})
+    await jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
+          return res.status(401).send({message: "TokenError"});
+        } else {
+          return res.status(500).send({message: "InternalServerError"});
+        }
+      }
+      req.userId = decoded.userId
+      return res.status(200).send({message: "Valid"})
+    });
 })
 
 app.post("/register", async (req, res) => {
