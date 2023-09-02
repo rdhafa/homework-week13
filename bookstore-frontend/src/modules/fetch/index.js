@@ -9,6 +9,38 @@ const handleLogin = async (user) => {
   }
 }
 
+const getAllBooks = async () => {
+  try {
+    const response = await axios.get('/books')
+    return response.data
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something Went Wrong')
+  }
+}
+
+const addBook = async (book) => {
+  try {
+    const response = await axiosPrivate.post('/books', book, {
+      headers: {"Content-Type": 'multipart/form-data'}
+    })
+    return response
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something Went Wrong')
+  }
+}
+
+const editBook = async (book) => {
+  const {id} = book
+  try {
+    const response = await axiosPrivate.put(`/books/${id}`, book, {
+      headers: {"Content-Type": 'multipart/form-data'}
+    })
+    return response
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something Went Wrong')
+  }
+}
+
 const validateToken = async () => {
   try {
     const response = await axiosPrivate.get('/verify')
@@ -22,4 +54,4 @@ const validateToken = async () => {
   }
 }
 
-export { handleLogin, validateToken }
+export { handleLogin, getAllBooks, addBook, editBook, validateToken }

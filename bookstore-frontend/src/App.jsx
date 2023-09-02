@@ -1,11 +1,10 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import Navbar from './components/Navbar'
-import { Box, VStack } from '@chakra-ui/react'
+import Navbar from './components/Navbar.jsx'
+import { Box } from '@chakra-ui/react'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
-import Home from './pages/Home'
+import Library from './pages/Library'
+import Register from './pages/Register'
+import AddBook from './pages/AddBook'
 
 
 function App() {
@@ -13,9 +12,11 @@ function App() {
   return (
     <Box w={'100%'} h={'100vh'}>
       <Router>
-        <Navbar/>
+        <Navbar />
         <Routes>
-          <Route path='/' element={<Home />}/>
+          <Route path='/' element={<Library />} />
+          <Route path='/register' element={<Register />} />
+          <Route path='/addbook' element={<AddBook />} />
         </Routes>
       </Router>
     </Box>

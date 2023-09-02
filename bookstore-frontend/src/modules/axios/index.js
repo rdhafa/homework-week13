@@ -1,13 +1,18 @@
 import axios from 'axios'
-import Cookie from 'js-cookie'
+import Cookies from 'js-cookie'
 const baseURL = 'http://localhost:8000'
 
-const token = Cookie.get('jwt_token')
 export default axios.create({baseURL})
 
-export const axiosPrivate = axios.create({
-  baseURL,
-  headers: {
-    Authorization: `Bearer ${token}`
+const axiosPrivate = axios.create({baseURL})
+axiosPrivate.interceptors.request.use((config) => {
+  const token = Cookies.get('jwt_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
+  return config
+}, (error) => {
+  return Promise.reject(error);
 })
+
+export { axiosPrivate }

@@ -54,7 +54,7 @@ const upload = multer({
 app.get('/verify', async (req, res) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-    if (token === null) return res.status(401).send({message: "NoToken"});
+    if (!token) return res.send({message: "NoToken"});
 
     await jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {

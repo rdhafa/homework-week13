@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
 import { handleLogin, validateToken } from "../modules/fetch";
-import { Box, Button, Flex, FormControl, FormLabel, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverHeader, PopoverTrigger, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react'
-import { Link, useNavigate } from "react-router-dom";
-import Cookie from 'js-cookie'
-import Cookies from "js-cookie";
+import { Button, Flex, FormControl, FormLabel, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverFooter, PopoverHeader, PopoverTrigger, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react'
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoginError, setIsLoginError] = useState(false)
+  const [inAddBook, setInAddBook] = useState(false)
   const {isOpen, onOpen, onClose} = useDisclosure()
-  // const [tokenCookie, setTokenCookie] = useState(false)
-  const toast = useToast()
   const navigate = useNavigate()
+  const {pathname} = useLocation()
 
-  // setTokenCookie(Cookie.get('jwt_token'))
-  // console.log(Cookie.get('jwt_token'))
-
+  const Toast = Swal.mixin({
+    toast: true,
+    timer: 2000,
+    showConfirmButton: false,
+    timerProgressBar: true
+  })
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -26,11 +30,19 @@ const Navbar = () => {
           setIsAuthenticated(false)
         }
       } catch (e) {
-        console.log(e);
+        return
       }
     }
     checkLoginStatus()
-  }, []);
+  }, [Cookies.get('jwt_token')]);
+
+  useEffect(() => {
+    if (pathname === "/addbook") {
+      setInAddBook(true)
+    } else {
+      setInAddBook(false)
+    }
+  },[pathname])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -40,34 +52,30 @@ const Navbar = () => {
         password: event.target.password.value
       }
       const token = await handleLogin(user)
-      // Cookie.set("jwt_token", token.token)
-      localStorage.setItem('jwt_token', token.token)
-      toast({
-        position: 'bottom-right',
-        title: 'Login Success',
-        description: 'Login Success!',
-        status: 'success',
-        duration: '3000',
-        isClosable: true
-      })
+      Cookies.set('jwt_token', token.token)
       navigate('/')
       onClose()
+      Toast.fire({
+        icon: 'success',
+        position: "top-end",
+        title: 'Login Success!',
+        color: 'green',
+      })
     } catch (err) {
-      toast({
+      setIsLoginError(err.message)
+      Toast.fire({
+        icon: 'error',
         position: 'top',
         title: 'Login Error',
-        description: err.message,
-        status: 'error',
-        duration: '3000',
-        isClosable: true
+        text: err.message,
+        color: 'red',
       })
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Cookies.remove('jwt_token')
-    navigate('/')
-    onClose()
+    setIsAuthenticated(false)
   }
   
   return (
@@ -91,31 +99,42 @@ const Navbar = () => {
         </Text>
       </Link>
       <HStack>
-        {isAuthenticated && (
-          <Button height={'2.2rem'} mr={'0.7rem'}>Add Book</Button>
+        {(isAuthenticated && !inAddBook) && (
+          <Link to={'/addbook'}>
+            <Button height={'2.2rem'} colorScheme="green" mr={'0.7rem'}>
+              Add Book
+            </Button>
+          </Link>
         )}
         {!isAuthenticated ? (
-            <Button height={'2.2rem'}
+            <Button height={'2.2rem'} colorScheme="blue"
               onClick={onOpen}>
               Login
             </Button>
           ) : (
-            <Popover>
-              <PopoverTrigger>
-                <Button height={'2.2rem'}>Logout</Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <PopoverArrow/>
-                <PopoverCloseButton/>
-                <PopoverHeader>Confirmation!</PopoverHeader>
-                <PopoverBody>
-                  Yakin deck??
-                  <Button height={'2.2rem'} 
-                  onClick={handleLogout}>
-                  Logout
-                  </Button>
-                </PopoverBody>
-              </PopoverContent>
+            <Popover colorScheme="red">
+              {({ onClose }) => (
+                <>
+                  <PopoverTrigger>
+                    <Button colorScheme="red" height={'2.2rem'}>Logout</Button>
+                  </PopoverTrigger>
+                  <PopoverContent bgColor="red.100">
+                  <PopoverArrow bgColor="red.100"/>
+                  <PopoverCloseButton/>
+                  <PopoverBody>
+                    You sure want to logout?
+                    <Flex mt={'1rem'} justify={'center'}>
+                      <Button mr={'1em'} height={'2.2rem'} bgColor={'bg'} colorScheme="gray" onClick={onClose}>Cancel</Button>
+                      <Button height={'2.2rem'} colorScheme="red" variant={'outline'}
+                      onClick={handleLogout}>
+                      Logout
+                      </Button>
+                    </Flex>
+                  </PopoverBody>
+                </PopoverContent>
+              </>
+              )}
+              
             </Popover>
           )}
       </HStack>
@@ -130,10 +149,12 @@ const Navbar = () => {
           <ModalCloseButton/>
           <ModalBody>
             <VStack px={'3rem'} pt={'0.5rem'}>
+              {isLoginError && (
+                <Text color={'red'} fontSize={'0.8em'}>{isLoginError}</Text>
+              )}
               <FormControl isRequired>
                 <FormLabel>Email</FormLabel>
-                <Input type="email" name="email" //autoComplete="off" 
-                placeholder="example@example.com"/>
+                <Input type="email" name="email" autoComplete="off" placeholder="example@example.com"/>
               </FormControl>
               <FormControl isRequired>
                 <FormLabel>Password</FormLabel>
@@ -143,8 +164,16 @@ const Navbar = () => {
           </ModalBody>
           <ModalFooter>
             <VStack px={'3rem'} width={'full'}>
-              <Button type="submit" colorScheme="blue" width={'full'}>Login</Button>
-              <Button variant={'ghost'}>Secondary action</Button>
+              <Button type="submit" colorScheme="blue" width={'full'} height={'2.2rem'}>
+                <Text mb={'0.1em'}>
+                  Login
+                </Text>
+              </Button>
+              <Link to={'/register'} onClick={onClose}>
+                <Text fontSize={'0.8rem'}>
+                  Don't have an account? Click here!
+                </Text>
+              </Link>
             </VStack>
           </ModalFooter>
         </ModalContent>
