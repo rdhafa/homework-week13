@@ -53,6 +53,7 @@ const Navbar = () => {
       }
       const token = await handleLogin(user)
       Cookies.set('jwt_token', token.token)
+      setIsLoginError(false)
       navigate('/')
       onClose()
       Toast.fire({
@@ -76,6 +77,13 @@ const Navbar = () => {
   const handleLogout = async () => {
     Cookies.remove('jwt_token')
     setIsAuthenticated(false)
+    navigate('/')
+    Toast.fire({
+      icon: 'success',
+      position: "top-end",
+      title: 'Logout Success!',
+      color: 'green',
+    })
   }
   
   return (
@@ -134,7 +142,6 @@ const Navbar = () => {
                 </PopoverContent>
               </>
               )}
-              
             </Popover>
           )}
       </HStack>

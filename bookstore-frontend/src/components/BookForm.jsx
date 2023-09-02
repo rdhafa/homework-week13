@@ -7,17 +7,20 @@ import {
   Image,
   Input,
   Text,
-  useToast,
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { addBook, editBook } from "../modules/fetch";
 import Swal from 'sweetalert2'
+import { useNavigate } from "react-router-dom";
 
 export default function BookForm({ bookData }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [error, setError] = useState(null);
   const [authorValue, setAuthorValue] = useState('')
+  const [yearValue, setYearValue] = useState('')
+  const [pagesValue, setPagesValue] = useState('')
+  const navigate = useNavigate()
 
   const Toast = Swal.mixin({
     toast: true,
@@ -26,13 +29,22 @@ export default function BookForm({ bookData }) {
     timerProgressBar: true
   })
 
-  const regexLettersOnly = /[^a-zA-Z]+/g
-  const validation = (e) => {
+  const regexLettersOnly = /[^a-zA-Z '-]+/g
+  const authorValidation = (e) => {
   e.preventDefault()
   setAuthorValue(e.target.value.replace(regexLettersOnly, ''))
-  // console.log(e.target.value.replace(regexLettersOnly, ''))
-  // e.target.value.replace()
   }
+
+  const regexNumbersOnly = /[^0-9]+/g
+  const yearValidation = (e) => {
+    e.preventDefault()
+    setYearValue(e.target.value.replace(regexNumbersOnly, ''))
+    }
+
+  const pagesValidation = (e) => {
+    e.preventDefault()
+    setPagesValue(e.target.value.replace(regexNumbersOnly, ''))
+    }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -84,6 +96,7 @@ export default function BookForm({ bookData }) {
         color: 'green'
       })
       setSelectedImage("");
+      navigate('/')
     } catch (err) {
       Toast.fire({
         icon: 'error',
@@ -122,6 +135,7 @@ export default function BookForm({ bookData }) {
               <FormLabel>Title</FormLabel>
               <Input 
               name="title" 
+              type='text'
               required 
               placeholder="The Lord of the Rings" 
               autoComplete='off'
@@ -132,12 +146,12 @@ export default function BookForm({ bookData }) {
               <FormLabel>Author</FormLabel>
               <Input 
               name="author" 
+              type='text'
               required 
               placeholder="John Ronald Reuel Tolkien" 
               autoComplete='off'
-              onChange={(e) => {validation(e)}}
+              onChange={(e) => {authorValidation(e)}}
               value={authorValue}
-              // onChange={(e) => {console.log(e.target.value)}}
               defaultValue={bookData?.author} />
             </FormControl>
 
@@ -145,6 +159,7 @@ export default function BookForm({ bookData }) {
               <FormLabel>Publisher</FormLabel>
               <Input 
               name="publisher" 
+              type='text'
               required 
               placeholder="George Allen and Unwin" 
               autoComplete='off'
@@ -155,10 +170,12 @@ export default function BookForm({ bookData }) {
               <FormLabel>Year</FormLabel>
               <Input
                 name="year"
-                type="number"
+                type="text"
                 required
                 placeholder="1954"
                 autoComplete='off'
+                value={yearValue}
+                onChange={(e) => {yearValidation(e)}}
                 defaultValue={bookData?.year} 
               />
             </FormControl>
@@ -167,10 +184,12 @@ export default function BookForm({ bookData }) {
               <FormLabel>Pages</FormLabel>
               <Input
                 name="pages"
-                type="number"
+                type="text"
                 required
                 placeholder="1137"
                 autoComplete='off'
+                value={pagesValue}
+                onChange={(e) => {pagesValidation(e)}}
                 defaultValue={bookData?.pages} 
               />
             </FormControl>

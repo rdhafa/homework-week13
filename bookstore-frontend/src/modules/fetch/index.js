@@ -18,6 +18,15 @@ const getAllBooks = async () => {
   }
 }
 
+const getABook = async (id) => {
+  try {
+    const response = await axios.get(`/books/${id}`)
+    return response.data
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something Went Wrong')
+  }
+}
+
 const addBook = async (book) => {
   try {
     const response = await axiosPrivate.post('/books', book, {
@@ -41,6 +50,15 @@ const editBook = async (book) => {
   }
 }
 
+const deleteBook = async (id) => {
+  try {
+    const response = await axiosPrivate.delete(`/books/${id}`)
+    return response
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something Went Wrong')
+  }
+}
+
 const validateToken = async () => {
   try {
     const response = await axiosPrivate.get('/verify')
@@ -54,4 +72,4 @@ const validateToken = async () => {
   }
 }
 
-export { handleLogin, getAllBooks, addBook, editBook, validateToken }
+export { handleLogin, getAllBooks, getABook, addBook, editBook, deleteBook, validateToken }

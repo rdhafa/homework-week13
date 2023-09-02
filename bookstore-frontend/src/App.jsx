@@ -5,6 +5,9 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import Library from './pages/Library'
 import Register from './pages/Register'
 import AddBook from './pages/AddBook'
+import BookDetail from './pages/BookDetail'
+import PrivateRoute from './components/PrivateRoute'
+import EditBook from './pages/EditBook'
 
 
 function App() {
@@ -15,8 +18,18 @@ function App() {
         <Navbar />
         <Routes>
           <Route path='/' element={<Library />} />
+          <Route path='/book/:id' element={<BookDetail />}/>
           <Route path='/register' element={<Register />} />
-          <Route path='/addbook' element={<AddBook />} />
+          <Route path='/addbook' element={
+          <PrivateRoute>
+            <AddBook />
+          </PrivateRoute>
+          } />
+          <Route path='/editbook/:id' element={
+          <PrivateRoute>
+            <EditBook />
+          </PrivateRoute>
+          } />
         </Routes>
       </Router>
     </Box>

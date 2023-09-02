@@ -26,8 +26,8 @@ const Library = () => {
       )}
       <Box width={'80%'} mx={'auto'}>
         <Grid templateColumns={'repeat(3, 1fr)'} gap='1.5em' py='2rem' mx={'auto'} justifyItems={'center'}>
-        {books?.books?.map((book) => (
-          <BookCard key={book.id} {...book} />
+        {books.books?.map((book) => (
+          <BookCard key={book.id} {...book}  />
         ))}
         </Grid>
       </Box>
