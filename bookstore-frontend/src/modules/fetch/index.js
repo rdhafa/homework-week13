@@ -9,6 +9,15 @@ const handleLogin = async (user) => {
   }
 }
 
+const registerUser = async (user) => {
+  try {
+    const response = await axios.post('/register', user)
+    return response
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something Went Wrong')
+  }
+}
+
 const getAllBooks = async () => {
   try {
     const response = await axios.get('/books')
@@ -70,4 +79,4 @@ const validateToken = async () => {
   }
 }
 
-export { handleLogin, getAllBooks, getABook, addBook, editBook, deleteBook, validateToken }
+export { handleLogin, registerUser, getAllBooks, getABook, addBook, editBook, deleteBook, validateToken }

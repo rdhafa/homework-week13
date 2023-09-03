@@ -141,7 +141,7 @@ export default function BookForm( bookData ) {
         </Text>
       )}
         <form onSubmit={handleSubmit}>
-          <VStack >
+          <VStack p={'1rem'}>
             <FormControl isRequired>
               <FormLabel>Title</FormLabel>
               <Input 
@@ -203,7 +203,7 @@ export default function BookForm( bookData ) {
               <Image w={'10rem'} src={selectedImage} alt="Selected Image" />
             )}
             {!bookData?.image && (
-              <FormControl isRequired>
+              <FormControl isRequired mb={'1rem'}>
                 <FormLabel>Image</FormLabel>
                 <Input
                   name="image"
