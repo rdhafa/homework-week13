@@ -38,15 +38,13 @@ const addBook = async (book) => {
   }
 }
 
-const editBook = async (book) => {
-  const {id} = book
+const editBook = async (id, editedBook) => {
   try {
-    const response = await axiosPrivate.put(`/books/${id}`, book, {
-      headers: {"Content-Type": 'multipart/form-data'}
-    })
+    const response = await axiosPrivate.put(`/books/${id}`, editedBook)
     return response
   } catch (err) {
-    throw new Error(err.response.data.message || 'Something Went Wrong')
+    throw new Error(err.response.data.message || 'Something Went Wrong'
+    )
   }
 }
 
